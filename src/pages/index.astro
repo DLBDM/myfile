@@ -1,11 +1,109 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+let imageUrl = "";  // 用于存储返回的图片链接
+let errorMessage = ""; // 错误信息
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Astro 控件页面</title>
+  </head>
+  <body>
+    <h1>控件页面</h1>
+
+    <!-- 表单 -->
+    <form id="astro-form">
+      <!-- 第一个下拉菜单 -->
+      <label for="country_1">选择第一个国家：</label>
+      <select name="country_1" id="country_1" required>
+        <option value="USA">USA</option>
+        <option value="China">China</option>
+      </select>
+      <br />
+
+      <!-- 第二个下拉菜单 -->
+      <label for="country_2">选择第二个国家/类别：</label>
+      <select name="country_2" id="country_2" required>
+        <option value="Germany">Germany</option>
+        <option value="India">India</option>
+        <option value="Japan">Japan</option>
+        <option value="Oil">Oil</option>
+        <option value="Gold">Gold</option>
+        <option value="Stock">Stock</option>
+        <option value="Bank">Bank</option>
+        <option value="Agriculture">Agriculture</option>
+        <option value="Military">Military</option>
+        <option value="Medical">Medical</option>
+        <option value="Car">Car</option>
+        <option value="Steel">Steel</option>
+      </select>
+      <br />
+
+      <!-- 输入框 -->
+      <label for="year">输入一个整数：</label>
+      <input
+        type="number"
+        name="year"
+        id="year"
+        min="1"
+        required
+        placeholder="请输入一个整数"
+      />
+      <br />
+
+      <!-- 提交按钮 -->
+      <button type="submit">提交</button>
+    </form>
+
+    <!-- 显示返回的图像 -->
+    <div id="image-container">
+      {imageUrl ? (
+        <div>
+          <h3>返回的图像：</h3>
+          <img src={imageUrl} alt="Result Image" />
+        </div>
+      ) : (
+        <div>{errorMessage}</div>
+      )}
+    </div>
+
+    <!-- 原生 JavaScript 来处理表单提交 -->
+    <script>
+      document.getElementById("astro-form").addEventListener("submit", async function (event) {
+        event.preventDefault();  // 防止表单默认提交
+
+        const formData = new FormData(event.target);
+
+        const data = {
+          country_1: formData.get("country_1"),
+          country_2: formData.get("country_2"),
+          year: formData.get("year"),
+        };
+
+        try {
+          // 发送 POST 请求到后端服务器
+          const response = await fetch("http://121.43.163.188:80/submit", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          // 处理返回的图片数据
+          if (response.ok) {
+            const result = await response.json();
+            const imageUrl = result.imageUrl;  // 假设后端返回的 JSON 中包含图片的 URL
+            document.getElementById("image-container").innerHTML = `<div><h3>返回的图像：</h3><img src="${imageUrl}" alt="Result Image" /></div>`;
+          } else {
+            document.getElementById("image-container").innerHTML = "<div>请求失败，请重试。</div>";
+          }
+        } catch (error) {
+          document.getElementById("image-container").innerHTML = "<div>网络错误，请检查网络连接。</div>";
+        }
+      });
+    </script>
+  </body>
+</html>
